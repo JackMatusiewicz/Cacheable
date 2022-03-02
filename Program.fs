@@ -53,6 +53,6 @@ and CacheablePartialApplicationEval<'b, 'a, 'r> =
 
 [<EntryPoint>]
 let main argv =
-    let message = "F#" // Call the function
+    let message = "F#"
     printfn "Hello world %s" message
-    0 // return an integer exit code
+    0
