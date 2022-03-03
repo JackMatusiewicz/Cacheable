@@ -44,7 +44,7 @@ module Cacheable =
 
         | Map mc ->
             mc.Apply { new CacheableMapEval<'a, 'b, ('a -> 'b) * unit IEvent> with
-                member __.Eval f v =
+                member __.Eval<'c> (f : 'c -> 'b) v =
                     let inner, innerEv = convert<'a, 'c> v
                     let f' = Function.memoise innerEv f
                     inner >> f', innerEv
@@ -60,18 +60,18 @@ module Cacheable =
 
         | Apply ac ->
             ac.Apply { new CacheableApplyEval<'a, 'b, ('a -> 'b) * unit IEvent> with
-                member __.Eval f v =
-                    let (f', fEv) = convert f
-                    let (v', vEv) = convert v
+                member __.Eval<'c> f v =
+                    let (f', fEv) = convert<'a, 'c -> 'b> f
+                    let (v', vEv) = convert<'a, 'c> v
                     let mergedEvent = Event.merge fEv vEv
                     Function.memoise mergedEvent (fun a -> f' a (v' a)), mergedEvent
             }
 
         | PartialApplication pc ->
             pc.Apply { new CacheablePartialApplicationEval<'a, 'b, ('a -> 'b) * unit IEvent> with
-                member __.Eval f v =
-                    let (f, fEv) = convert f
-                    let (v, vEv) = convert v
+                member __.Eval<'c, 'd> f v =
+                    let (f, fEv) = convert<'c, 'd> f
+                    let (v, vEv) = convert<'c -> 'd, 'a -> 'b> v
                     let merged = Event.merge fEv vEv
                     Function.memoise merged (v f), merged
             }
