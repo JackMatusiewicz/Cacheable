@@ -1,4 +1,4 @@
-﻿namespace Analytica
+﻿namespace Cacheable
 
 open System.Reflection
 open Microsoft.FSharp.Reflection
@@ -9,7 +9,7 @@ open FSharp.Quotations.Patterns
 
 module Function =
 
-    let invokeStaticMethod (lambda : Expr) (types : Type list) (args : obj list) =
+    let private invokeStaticMethod (lambda : Expr) (types : Type list) (args : obj list) =
         let rec invoke lambda =
             match lambda with
             | Lambda(_, innerExpr) ->

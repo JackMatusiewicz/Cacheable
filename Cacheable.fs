@@ -32,3 +32,48 @@ module Cacheable =
         { new CacheablePartialApplication<'c, 'd> with
             member __.Apply e = e.Eval v f
         } |> PartialApplication
+
+    let rec convert<'a, 'b> (v : Cacheable<'a, 'b>) : (('a -> 'b) * unit IEvent) =
+        match v with
+        | Pure (f, _) ->
+            let ev = Event<unit>().Publish
+            Function.memoise ev f, ev
+
+        | Func (f, ev, _) ->
+            Function.memoise ev f, ev
+
+        | Map mc ->
+            mc.Apply { new CacheableMapEval<'a, 'b, ('a -> 'b) * unit IEvent> with
+                member __.Eval f v =
+                    let inner, innerEv = convert<'a, 'c> v
+                    let f' = Function.memoise innerEv f
+                    inner >> f', innerEv
+            }
+
+        | Contramap cc ->
+            cc.Apply { new CacheableContramapEval<'a, 'b, ('a -> 'b) * unit IEvent> with
+                member __.Eval<'c> f v =
+                    let inner, innerEv = convert<'c, 'b> v
+                    let f' = Function.memoise innerEv f
+                    f' >> inner, innerEv
+            }
+
+        | Apply ac ->
+            ac.Apply { new CacheableApplyEval<'a, 'b, ('a -> 'b) * unit IEvent> with
+                member __.Eval f v =
+                    let (f', fEv) = convert f
+                    let (v', vEv) = convert v
+                    let mergedEvent = Event.merge fEv vEv
+                    Function.memoise mergedEvent (fun a -> f' a (v' a)), mergedEvent
+            }
+
+        | PartialApplication pc ->
+            pc.Apply { new CacheablePartialApplicationEval<'a, 'b, ('a -> 'b) * unit IEvent> with
+                member __.Eval f v =
+                    let (f, fEv) = convert f
+                    let (v, vEv) = convert v
+                    let merged = Event.merge fEv vEv
+                    Function.memoise merged (v f), merged
+            }
+
+        | Bind _ -> failwith "Bind is currently not supported."
