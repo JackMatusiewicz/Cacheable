@@ -73,7 +73,7 @@ module Cacheable =
                     let (f, fEv) = convert<'c, 'd> f
                     let (v, vEv) = convert<'c -> 'd, 'a -> 'b> v
                     let merged = Event.merge fEv vEv
-                    Function.memoise merged (v f), merged
+                    Function.memoise merged (fun a -> v f a), merged
             }
 
         | Bind _ -> failwith "Bind is currently not supported."
