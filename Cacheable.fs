@@ -2,8 +2,8 @@
 
 module Cacheable =
 
-    let lift (f : 'a -> 'b) (cs : CachingStrategy) : Cacheable<'a, 'b> =
-        Pure (f,cs)
+    let lift (f : 'a -> 'b) : Cacheable<'a, 'b> =
+        Pure (f, CachingStrategy.NoCaching)
 
     let func (f : 'a -> 'b) (reset : unit IEvent) (cs : CachingStrategy) : Cacheable<'a, 'b> =
         Func (f, reset, cs)
@@ -33,6 +33,8 @@ module Cacheable =
             member __.Apply e = e.Eval v f
         } |> PartialApplication
 
+    // TODO - Need to account for the caching strategies.
+    // Notably, we don't memoise if there is a caching strategy of none (most likely in the Pure case)
     let rec convert<'a, 'b> (v : Cacheable<'a, 'b>) : (('a -> 'b) * unit IEvent) =
         match v with
         | Pure (f, _) ->

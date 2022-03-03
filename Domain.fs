@@ -4,6 +4,7 @@
 /// In these scenarioes LRU will override All.
 [<Struct>]
 type CachingStrategy =
+    | NoCaching
     | All
     | LeastRecentlyUsed
 

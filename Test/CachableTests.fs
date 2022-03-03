@@ -48,7 +48,11 @@ module CacheableTest =
 
         let ev = Event<unit> ()
 
-        let liftedDouble = Cacheable.lift double CachingStrategy.All
+        let liftedDouble =
+            Cacheable.func
+                double
+                (Event<unit>().Publish)
+                CachingStrategy.All
 
         let (memoisedAdd, finalEv) =
             Cacheable.func add ev.Publish CachingStrategy.All
