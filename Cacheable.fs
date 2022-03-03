@@ -45,17 +45,17 @@ module Cacheable =
         | Map mc ->
             mc.Apply { new CacheableMapEval<'a, 'b, ('a -> 'b) * unit IEvent> with
                 member __.Eval<'c> (f : 'c -> 'b) v =
-                    let inner, innerEv = convert<'a, 'c> v
-                    let f' = Function.memoise innerEv f
-                    inner >> f', innerEv
+                    let v, innerEv = convert<'a, 'c> v
+                    let f = Function.memoise innerEv f
+                    (fun a -> f (v a)), innerEv
             }
 
         | Contramap cc ->
             cc.Apply { new CacheableContramapEval<'a, 'b, ('a -> 'b) * unit IEvent> with
                 member __.Eval<'c> f v =
-                    let inner, innerEv = convert<'c, 'b> v
-                    let f' = Function.memoise innerEv f
-                    f' >> inner, innerEv
+                    let v, innerEv = convert<'c, 'b> v
+                    let f = Function.memoise innerEv f
+                    (fun a -> v (f a)) , innerEv
             }
 
         | Apply ac ->
