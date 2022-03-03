@@ -11,6 +11,7 @@
     <Compile Include="Domain.fs" />
     <Compile Include="Cacheable.fs" />
     <Compile Include="Function.fs" />
+    <Compile Include="Example.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
