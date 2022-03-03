@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.32126.315
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Cacheable", "Cacheable.fsproj", "{298B39EE-38CE-4420-9785-4D569A087D36}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Cacheable.Test", "..\Cacheable.Test\Cacheable.Test.fsproj", "{FC67B356-CF3B-470B-9E33-F7A15A3E96B6}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Cacheable.Test", "Test\Cacheable.Test.fsproj", "{1FDD0515-1DC3-4425-B803-76019D81EFE5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{298B39EE-38CE-4420-9785-4D569A087D36}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{298B39EE-38CE-4420-9785-4D569A087D36}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{298B39EE-38CE-4420-9785-4D569A087D36}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FC67B356-CF3B-470B-9E33-F7A15A3E96B6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FC67B356-CF3B-470B-9E33-F7A15A3E96B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FC67B356-CF3B-470B-9E33-F7A15A3E96B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FC67B356-CF3B-470B-9E33-F7A15A3E96B6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1FDD0515-1DC3-4425-B803-76019D81EFE5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1FDD0515-1DC3-4425-B803-76019D81EFE5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1FDD0515-1DC3-4425-B803-76019D81EFE5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1FDD0515-1DC3-4425-B803-76019D81EFE5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
