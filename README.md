@@ -66,7 +66,7 @@ let getCompanyCacheable =
 
 // This constructs a (UserId list -> Set<Company>) function that will cache the results of
 // this function and reset its cache based on the reset events of either of its parameters.
-let (constructCompanyListCacheable, _) =
+let constructCompanyListCacheable =
     Cacheable.lift constructCompanyList CachingStrategy.All
     |> Cacheable.applyArg getUserCacheable
     |> Cacheable.applyArg getCompanyCacheable
