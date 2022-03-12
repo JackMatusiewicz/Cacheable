@@ -4,6 +4,14 @@ About
 -----
 An F# library to help compose caching functions that have triggers for resets.
 
+Why would you ever use this?
+-----
+Suppose you have a system designed around multiple "Lookup" functions that all pull data from a database. As repeated calls to the database can be costly, you'll probably cache
+the data in these objects. However, other services may also be writing to these databases at the same time so you'll have a system that notifies you when you need to flush
+specific Lookup functions.
+
+You may also have functions that make use of many of these Lookup functions and perform their own work that is also time consuming, and therefore needs to be cached.
+This library will help you thread the invalidation notifications through the graph of functions to ensure all caches are invalidated correctly.
 
 F# Example
 -----
