@@ -19,7 +19,6 @@ module CacheableTest =
         let memoisedAdd =
             Cacheable.func add ev.Publish CachingStrategy.All
             |> Cacheable.convert
-            |> fst
 
         memoisedAdd 1 2 |> ignore
         memoisedAdd 1 2 |> ignore
@@ -49,14 +48,13 @@ module CacheableTest =
         let ev = Event<unit> ()
 
         let liftedDouble =
-            Cacheable.func
+            Cacheable.lift
                 double
-                (Event<unit>().Publish)
                 CachingStrategy.All
 
-        let (memoisedAdd, finalEv) =
+        let memoisedAdd =
             Cacheable.func add ev.Publish CachingStrategy.All
-            |> Cacheable.applyArg liftedDouble
+            |> fun f -> Cacheable.applyArg f liftedDouble
             |> Cacheable.convert
 
         memoisedAdd 1 |> ignore

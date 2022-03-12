@@ -23,59 +23,76 @@ module Cacheable =
             member __.Apply e = e.Eval f v
         } |> Contramap
 
-    let bind (f : 'c -> Cacheable<'a, 'b>) (v : Cacheable<'a, 'c>) : Cacheable<'a, 'b> =
-        { new CacheableBind<'a, 'b> with
-            member __.Apply e = e.Eval f v
-        } |> Bind
-
-    let applyArg (f : Cacheable<'a -> 'b, 'c -> 'd>) (v : Cacheable<'a, 'b>) : Cacheable<'c, 'd> =
+    let applyArg (v : Cacheable<'a, 'b>) (f : Cacheable<'a -> 'b, 'c -> 'd>) : Cacheable<'c, 'd> =
         { new CacheablePartialApplication<'c, 'd> with
             member __.Apply e = e.Eval v f
         } |> PartialApplication
 
     // TODO - Need to account for the caching strategies.
     // Notably, we don't memoise if there is a caching strategy of none (most likely in the Pure case)
-    let rec convert<'a, 'b> (v : Cacheable<'a, 'b>) : (('a -> 'b) * unit IEvent) =
+    let rec convert'<'a, 'b, 'k>
+        (v : Cacheable<'a, 'b>)
+        (kont : (('a -> 'b) * unit IEvent) -> 'k)
+        : 'k
+        =
         match v with
         | Pure (f, _) ->
             let ev = Event<unit>().Publish
-            Function.memoise ev f, ev
+            (Function.memoise ev f, ev)
+            |> kont
 
         | Func (f, ev, _) ->
-            Function.memoise ev f, ev
+            (Function.memoise ev f, ev)
+            |> kont
 
         | Map mc ->
-            mc.Apply { new CacheableMapEval<'a, 'b, ('a -> 'b) * unit IEvent> with
+            mc.Apply { new CacheableMapEval<'a, 'b, 'k> with
                 member __.Eval<'c> (f : 'c -> 'b) v =
-                    let v, innerEv = convert<'a, 'c> v
-                    let f = Function.memoise innerEv f
-                    (fun a -> f (v a)), innerEv
+                    convert'<'a, 'c, 'k> v
+                        (fun (v, innerEv) ->
+                            let f = Function.memoise innerEv f
+                            ((fun a -> f (v a)), innerEv)
+                            |> kont
+                        )
             }
 
         | Contramap cc ->
-            cc.Apply { new CacheableContramapEval<'a, 'b, ('a -> 'b) * unit IEvent> with
+            cc.Apply { new CacheableContramapEval<'a, 'b, 'k> with
                 member __.Eval<'c> f v =
-                    let v, innerEv = convert<'c, 'b> v
-                    let f = Function.memoise innerEv f
-                    (fun a -> v (f a)) , innerEv
+                    convert'<'c, 'b, 'k> v
+                        (fun (v, innerEv) ->
+                            let f = Function.memoise innerEv f
+                            ((fun a -> v (f a)) , innerEv)
+                            |> kont
+                        )
             }
 
         | Apply ac ->
-            ac.Apply { new CacheableApplyEval<'a, 'b, ('a -> 'b) * unit IEvent> with
+            ac.Apply { new CacheableApplyEval<'a, 'b, 'k> with
                 member __.Eval<'c> f v =
-                    let (f', fEv) = convert<'a, 'c -> 'b> f
-                    let (v', vEv) = convert<'a, 'c> v
-                    let mergedEvent = Event.merge fEv vEv
-                    Function.memoise mergedEvent (fun a -> f' a (v' a)), mergedEvent
+                    convert'<'a, 'c -> 'b, 'k> f
+                        (fun (f', fEv) ->
+                            convert'<'a, 'c, 'k> v
+                                (fun (v', vEv) ->
+                                    let mergedEvent = Event.merge fEv vEv
+                                    (Function.memoise mergedEvent (fun a -> f' a (v' a)), mergedEvent)
+                                    |> kont
+                                )
+                        )
             }
 
         | PartialApplication pc ->
-            pc.Apply { new CacheablePartialApplicationEval<'a, 'b, ('a -> 'b) * unit IEvent> with
+            pc.Apply { new CacheablePartialApplicationEval<'a, 'b, 'k> with
                 member __.Eval<'c, 'd> f v =
-                    let (f, fEv) = convert<'c, 'd> f
-                    let (v, vEv) = convert<'c -> 'd, 'a -> 'b> v
-                    let merged = Event.merge fEv vEv
-                    Function.memoise merged (fun a -> v f a), merged
+                    convert'<'c, 'd, 'k> f
+                        (fun (f, fEv) ->
+                            convert'<'c -> 'd, 'a -> 'b, 'k> v
+                                (fun (v, vEv) ->
+                                    let merged = Event.merge fEv vEv
+                                    (Function.memoise merged (fun a -> v f a), merged)
+                                    |> kont
+                                )
+                        )
             }
 
-        | Bind _ -> failwith "Bind is currently not supported."
+    let convert v = convert' v id |> fst
