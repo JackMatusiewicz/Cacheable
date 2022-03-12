@@ -13,6 +13,14 @@ specific Lookup functions.
 You may also have functions that make use of many of these Lookup functions and perform their own work that is also time consuming, and therefore needs to be cached.
 This library will help you thread the invalidation notifications through the graph of functions to ensure all caches are invalidated correctly.
 
+Key features of the library
+-----
+The first key feature is invalidation management. The aim of the library is to manage how you compose cacheable functions together so that they automatically
+invalidate their caches when their dependencies change. This should hopefully remove a lot of bugs!
+
+The second key feature is automatic memoisation. The library will generate a memoised function for you. The aim is to make these generated functions as efficient
+as the memoised functions you'd normally write by hand.
+
 F# Example
 -----
 
