@@ -67,6 +67,7 @@ module Function =
                 d.[a] <- v
                 v
 
+    /// The fallback case where we have to box the key.
     and private makeObjCacheFunc<'a, 'b> (clearSignal : IEvent<unit>) (f : 'a -> 'b) : 'a -> 'b =
         let d = Dictionary<obj, 'b> ()
         clearSignal.Add (fun _ -> d.Clear())
