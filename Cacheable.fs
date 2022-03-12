@@ -2,8 +2,8 @@
 
 module Cacheable =
 
-    let lift (f : 'a -> 'b) : Cacheable<'a, 'b> =
-        Pure (f, CachingStrategy.NoCaching)
+    let lift (f : 'a -> 'b) (cs : CachingStrategy) : Cacheable<'a, 'b> =
+        Pure (f, cs)
 
     let func (f : 'a -> 'b) (reset : unit IEvent) (cs : CachingStrategy) : Cacheable<'a, 'b> =
         Func (f, reset, cs)
