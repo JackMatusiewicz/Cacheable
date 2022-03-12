@@ -60,9 +60,9 @@ module Function =
         clearSignal.Add (fun _ -> d.Clear())
 
         fun a ->
-            if d.ContainsKey a then
-                d.[a]
-            else
+            match d.TryGetValue a with
+            | (true, v) -> v
+            | _ ->
                 let v = f a |> memoise clearSignal
                 d.[a] <- v
                 v
@@ -73,9 +73,9 @@ module Function =
         clearSignal.Add (fun _ -> d.Clear())
 
         fun a ->
-            if d.ContainsKey a then
-                d.[a]
-            else
+            match d.TryGetValue a with
+            | (true, v) -> v
+            | _ ->
                 let v = f a |> memoise clearSignal
                 d.[a] <- v
                 v
