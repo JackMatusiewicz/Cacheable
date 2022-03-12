@@ -104,7 +104,8 @@ module CacheableTest =
             |> Cacheable.applyArg addCacheable
             |> Cacheable.applyArg mulCacheable
             |> Cacheable.convert
-
+            
+        let _ = combinerCached 3
         let firstResult = combinerCached 3
 
         Assert.That(ctr1, Is.EqualTo 1)
@@ -113,6 +114,7 @@ module CacheableTest =
 
         addEv.Trigger ()
 
+        let _ = combinerCached 3
         let secondResult = combinerCached 3
 
         Assert.That(firstResult, Is.EqualTo secondResult)
@@ -122,6 +124,7 @@ module CacheableTest =
 
         mulEv.Trigger ()
 
+        let _ = combinerCached 3
         let thirdResult = combinerCached 3
 
         Assert.That(thirdResult, Is.EqualTo secondResult)
