@@ -68,7 +68,7 @@ let getCompanyCacheable =
 // this function and reset its cache based on the reset events of either of its parameters.
 let (constructCompanyListCacheable, _) =
     Cacheable.lift constructCompanyList CachingStrategy.All
-    |> fun f -> Cacheable.applyArg f getUserCacheable
-    |> fun f -> Cacheable.applyArg f getCompanyCacheable
+    |> Cacheable.applyArg getUserCacheable
+    |> Cacheable.applyArg getCompanyCacheable
     |> Cacheable.convert
 ```
