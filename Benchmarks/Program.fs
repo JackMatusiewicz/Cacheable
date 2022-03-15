@@ -11,9 +11,9 @@ let mutable cacheableCounter = 0
 [<SimpleJob(3,3,3)>]
 type LowerOrderFunctionBenchmark () =
 
-    let simpleCache = Dictionary<int * int * int * int * int, int> ()
+    let simpleCache = Dictionary<struct(int * int * int * int * int), int> ()
     let simpleCachedFunction a b c d e : int =
-        let k = (a,b,c,d,e)
+        let k = struct(a,b,c,d,e)
         match simpleCache.TryGetValue k with
         | (true, v) -> v
         | _ ->
@@ -39,15 +39,6 @@ type LowerOrderFunctionBenchmark () =
     [<MethodImpl(MethodImplOptions.NoOptimization ||| MethodImplOptions.NoInlining)>]
     member x.CacheableCaching () =
         addFiveCached 1 2 3 4 5
-
-(*
-Benchmark results:
-
-|           Method |     Mean |   Error |  StdDev |  Gen 0 | Allocated |
-|----------------- |---------:|--------:|--------:|-------:|----------:|
-|    CustomCaching | 276.8 ns | 3.91 ns | 2.33 ns | 0.1273 |     400 B |
-| CacheableCaching | 279.4 ns | 2.36 ns | 1.41 ns | 0.0381 |     120 B |
-*)
 
 [<EntryPoint>]
 let main argv =
