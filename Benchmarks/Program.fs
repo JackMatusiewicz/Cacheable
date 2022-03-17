@@ -4,9 +4,6 @@ open BenchmarkDotNet.Running
 open System.Runtime.CompilerServices
 open Cacheable
 
-let mutable simpleCounter = 0
-let mutable cacheableCounter = 0
-
 [<MemoryDiagnoser>]
 [<SimpleJob(3,3,3)>]
 type LowerOrderFunctionBenchmark () =
@@ -17,13 +14,11 @@ type LowerOrderFunctionBenchmark () =
         match simpleCache.TryGetValue k with
         | (true, v) -> v
         | _ ->
-            simpleCounter <- simpleCounter + 1
             let f = a + b + c + d + e
             simpleCache.[k] <- f
             f
 
     let addFive a b c d e =
-        cacheableCounter <- cacheableCounter + 1
         a + b + c + d + e
 
     let addFiveCached =
@@ -32,16 +27,29 @@ type LowerOrderFunctionBenchmark () =
 
     [<Benchmark>]
     [<MethodImpl(MethodImplOptions.NoOptimization ||| MethodImplOptions.NoInlining)>]
-    member x.CustomCaching () =
-        simpleCachedFunction 1 2 3 4 5
+    member _.CustomCaching () =
+        for i in 1 .. 1000 do
+            simpleCachedFunction 1 2 3 4 5 |> ignore
 
     [<Benchmark>]
     [<MethodImpl(MethodImplOptions.NoOptimization ||| MethodImplOptions.NoInlining)>]
-    member x.CacheableCaching () =
-        addFiveCached 1 2 3 4 5
+    member _.CacheableCaching () =
+        for i in 1 .. 1000 do
+            addFiveCached 1 2 3 4 5 |> ignore
+
+    [<Benchmark>]
+    [<MethodImpl(MethodImplOptions.NoOptimization ||| MethodImplOptions.NoInlining)>]
+    member _.CustomCachingAllUnique () =
+        for i in 1 .. 1000 do
+            simpleCachedFunction i i i i i |> ignore
+
+    [<Benchmark>]
+    [<MethodImpl(MethodImplOptions.NoOptimization ||| MethodImplOptions.NoInlining)>]
+    member _.CacheableCachingAllUnique () =
+        for i in 1 .. 1000 do
+            addFiveCached i i i i i |> ignore
 
 [<EntryPoint>]
 let main argv =
     BenchmarkRunner.Run<LowerOrderFunctionBenchmark>() |> ignore
-    printfn "%d - %d" simpleCounter cacheableCounter
     0
