@@ -10,7 +10,12 @@ open FSharp.Quotations.Patterns
 // This entire module is incredibly thread unsafe.
 module Function =
 
-    let private invokeStaticMethod (lambda : Expr) (types : Type array) (args : obj array) =
+    let private invokeStaticMethod
+        (lambda : Expr)
+        (types : Type array)
+        (args : obj array)
+        : obj
+        =
         let rec invoke lambda =
             match lambda with
             | Lambda(_, innerExpr) ->
@@ -20,7 +25,7 @@ module Function =
                 let genM = mig.MakeGenericMethod types
                 genM.Invoke(null, args)
             | _ ->
-                sprintf "Unable to call a function of type: %s" (lambda.GetType().Name)
+                $"Unable to call a function of type: %s{lambda.GetType().Name}"
                 |> failwith
         invoke lambda        
 
@@ -34,7 +39,8 @@ module Function =
                 let mutable equatable = false
                 t.GetInterfaces ()
                 |> Array.iter(fun i ->
-                    if i.ToString().Contains(equalityInterface) then equatable <- true)
+                    if i.ToString().Contains(equalityInterface) then
+                        equatable <- true)
                 equatable
             typeImplementsEqualityCache.[t] <- v
             v
@@ -48,9 +54,9 @@ module Function =
         | true ->
             let dom, range = FSharpType.GetFunctionElements typeof<'a>
             let implementsEquality = typeImplementsEquality dom
-
             let genericTypes = [|dom ; range|]
             let args = [|box clearSignal ; box f|]
+
             if FSharpType.IsFunction dom then
                 invokeStaticMethod
                     <@ makeCacheFuncWithNonCachedArg @>
@@ -58,16 +64,32 @@ module Function =
                     args
                     |> unbox<'a>
             elif implementsEquality then
-                invokeStaticMethod <@ makeCacheFunc @> genericTypes args |> unbox<'a>
+                invokeStaticMethod
+                    <@ makeCacheFunc @>
+                    genericTypes
+                    args
+                |> unbox<'a>
             else
-                invokeStaticMethod <@ makeObjCacheFunc @> genericTypes args |> unbox<'a>
+                invokeStaticMethod
+                    <@ makeObjCacheFunc @>
+                    genericTypes
+                    args
+                |> unbox<'a>
 
     /// If the domain type is a function, then there is no meaningful caching we can do.
-    and private makeCacheFuncWithNonCachedArg<'a, 'b> (clearSignal : IEvent<unit>) (f : 'a -> 'b) : 'a -> 'b =
+    and private makeCacheFuncWithNonCachedArg<'a, 'b>
+        (clearSignal : IEvent<unit>)
+        (f : 'a -> 'b)
+        : 'a -> 'b
+        =
         let v = fun a -> f a |> memoise clearSignal
         v
 
-    and private makeCacheFunc<'a, 'b when 'a : equality> (clearSignal : IEvent<unit>) (f : 'a -> 'b) : 'a -> 'b =
+    and private makeCacheFunc<'a, 'b when 'a : equality>
+        (clearSignal : IEvent<unit>)
+        (f : 'a -> 'b)
+        : 'a -> 'b
+        =
         let d = Dictionary<'a, 'b> ()
         clearSignal.Add (fun _ -> d.Clear())
 
@@ -80,13 +102,17 @@ module Function =
                 v
 
     /// The fallback case where we have to box the key.
-    and private makeObjCacheFunc<'a, 'b> (clearSignal : IEvent<unit>) (f : 'a -> 'b) : 'a -> 'b =
+    and private makeObjCacheFunc<'a, 'b>
+        (clearSignal : IEvent<unit>)
+        (f : 'a -> 'b)
+        : 'a -> 'b
+        =
         let d = Dictionary<obj, 'b> ()
         clearSignal.Add (fun _ -> d.Clear())
 
         fun a ->
             match d.TryGetValue a with
-            | (true, v) -> v
+            | true, v -> v
             | _ ->
                 let v = f a |> memoise clearSignal
                 d.[a] <- v
